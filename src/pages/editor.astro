@@ -1,0 +1,9 @@
+---
+/** Página del editor: lo incrusta Fediblog (ver EditorFrame en @fediblog/core). */
+import Base from '../layouts/Base.astro';
+import EditorFrame from '@fediblog/core/components/EditorFrame.astro';
+---
+
+<Base title="Editor" description="Redacta en Markdown y publica en Mastodon, con imágenes." isEntry wide>
+  <EditorFrame theme="matute" />
+</Base>

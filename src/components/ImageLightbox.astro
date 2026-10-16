@@ -1,0 +1,271 @@
+---
+/**
+ * Visor de imágenes ampliada (Lightbox):
+ * Detecta automáticamente las imágenes dentro de las entradas y páginas,
+ * permitiendo ampliarlas a pantalla completa con fondo atenuado, pie de foto
+ * y cierre con tecla Escape, clic fuera o botón de cerrar.
+ */
+---
+
+<dialog id="image-lightbox" class="image-lightbox" aria-label="Imagen ampliada">
+  <div class="lightbox-container">
+    <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Cerrar visor">
+      <span class="lightbox-close-key">esc</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="6"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+      </svg>
+    </button>
+    <div class="lightbox-media" id="lightbox-media">
+      <img src="" alt="" class="lightbox-img" id="lightbox-img" />
+      <p class="lightbox-caption" id="lightbox-caption" hidden></p>
+    </div>
+  </div>
+</dialog>
+
+<script is:inline>
+  (function () {
+    var dlg = document.getElementById('image-lightbox');
+    if (!dlg || typeof dlg.showModal !== 'function') return;
+
+    var imgEl = document.getElementById('lightbox-img');
+    var captionEl = document.getElementById('lightbox-caption');
+    var closeBtn = document.getElementById('lightbox-close');
+    var lastActive = null;
+
+    function open(src, alt, captionText, trigger) {
+      if (!imgEl) return;
+      lastActive = trigger || document.activeElement;
+      imgEl.src = src;
+      imgEl.alt = alt || '';
+
+      if (captionText) {
+        captionEl.textContent = captionText;
+        captionEl.hidden = false;
+      } else {
+        captionEl.textContent = '';
+        captionEl.hidden = true;
+      }
+
+      if (!dlg.open) {
+        dlg.showModal();
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+      }
+      if (closeBtn) closeBtn.focus();
+    }
+
+    function close() {
+      if (dlg.open) dlg.close();
+    }
+
+    dlg.addEventListener('close', function () {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      if (imgEl) imgEl.src = '';
+      if (lastActive && typeof lastActive.focus === 'function') {
+        lastActive.focus();
+      }
+      lastActive = null;
+    });
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', close);
+    }
+
+    // Clic fuera de la imagen (en el diálogo o fondo) o sobre la propia imagen para salir
+    dlg.addEventListener('click', function (e) {
+      if (e.target === dlg || e.target === imgEl || e.target.classList.contains('lightbox-container')) {
+        close();
+      }
+    });
+
+    function setupTriggers() {
+      var images = document.querySelectorAll('.body img, .bio img, article figure img, article .entry-page img, .header-banner');
+      images.forEach(function (img) {
+        if (img.dataset.lightboxReady) return;
+        img.dataset.lightboxReady = 'true';
+        img.classList.add('lightbox-trigger');
+
+        if (!img.hasAttribute('tabindex')) img.setAttribute('tabindex', '0');
+        if (!img.hasAttribute('role')) img.setAttribute('role', 'button');
+        if (!img.hasAttribute('aria-haspopup')) img.setAttribute('aria-haspopup', 'dialog');
+        if (!img.hasAttribute('aria-label')) {
+          var label = img.getAttribute('alt') || 'Ampliar imagen';
+          img.setAttribute('aria-label', 'Ampliar: ' + label);
+        }
+
+        var figure = img.closest('figure');
+        var figcaption = figure ? figure.querySelector('figcaption') : null;
+        var captionText = figcaption ? figcaption.textContent.trim() : (img.getAttribute('alt') || '');
+
+        img.addEventListener('click', function (e) {
+          e.preventDefault();
+          open(img.currentSrc || img.src, img.alt, captionText, img);
+        });
+
+        img.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            open(img.currentSrc || img.src, img.alt, captionText, img);
+          }
+        });
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupTriggers);
+    } else {
+      setupTriggers();
+    }
+
+    // Por si se cargan dinámicamente imágenes (ej. en preview)
+    if (typeof MutationObserver !== 'undefined') {
+      new MutationObserver(setupTriggers).observe(document.body, { childList: true, subtree: true });
+    }
+  })();
+</script>
+
+<style is:global>
+  /* Imágenes interactivas */
+  .lightbox-trigger {
+    cursor: zoom-in;
+    transition: opacity 0.15s ease;
+  }
+  .lightbox-trigger:hover {
+    opacity: 0.92;
+  }
+  .lightbox-trigger:focus-visible {
+    outline: 2px solid var(--accent-1);
+    outline-offset: 3px;
+  }
+
+  /* Diálogo del visor */
+  .image-lightbox {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .image-lightbox[open] {
+    display: flex;
+  }
+  .image-lightbox::backdrop {
+    background: rgba(10, 10, 12, 0.9);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .lightbox-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 2.5rem 1.5rem 1.5rem;
+    box-sizing: border-box;
+  }
+
+  .lightbox-media {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-width: 92vw;
+    max-height: 86vh;
+    animation: lightboxPop 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes lightboxPop {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .lightbox-img {
+    max-width: 90vw;
+    max-height: 80vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.45);
+    cursor: zoom-out;
+    user-select: none;
+  }
+
+  .lightbox-caption {
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    line-height: 1.5;
+    color: #a1a1aa;
+    text-align: center;
+    margin: 0.75rem 0 0;
+    max-width: min(38rem, 88vw);
+    text-wrap: balance;
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    color: #f4f4f5;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    z-index: 10;
+  }
+  .lightbox-close:hover,
+  .lightbox-close:focus-visible {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: #ffffff;
+    outline: none;
+  }
+  .lightbox-close svg {
+    display: block;
+  }
+
+  @media (max-width: 38rem) {
+    .lightbox-container {
+      padding: 3rem 0.75rem 1rem;
+    }
+    .lightbox-close {
+      top: 1rem;
+      right: 1rem;
+    }
+    .lightbox-close-key {
+      display: none;
+    }
+    .lightbox-img {
+      max-width: 95vw;
+      max-height: 75vh;
+    }
+  }
+</style>

@@ -1,0 +1,41 @@
+{
+  "theme": "matute",
+  "repo": "avelrom/fediblog-matute",
+  "ref": "main",
+  "note": "USER es un marcador que se rellena al publicar la plantilla (node scripts/update-locks.mjs --owner <organización>). «npm run fediblog:update» solo toca los archivos de «framework»; src/config.ts, package.json, public/ y README.md son tuyos. «Cambiar de tema» sí reemplaza los archivos del tema y lleva tus ajustes al config nuevo.",
+  "framework": [
+    "astro.config.mjs",
+    "scripts/fediblog-switch.mjs",
+    "scripts/fediblog-update.mjs",
+    "src/components/EntryList.astro",
+    "src/components/ImageLightbox.astro",
+    "src/components/Pagination.astro",
+    "src/content.config.ts",
+    "src/layouts/Base.astro",
+    "src/lib/actor.ts",
+    "src/lib/feed.ts",
+    "src/pages/404.astro",
+    "src/pages/[...page].astro",
+    "src/pages/[slug].astro",
+    "src/pages/about.astro",
+    "src/pages/archivo.astro",
+    "src/pages/editor.astro",
+    "src/pages/etiquetas/[tag].astro",
+    "src/pages/feed.json.ts",
+    "src/pages/rss-styles.xsl.ts",
+    "src/pages/rss.xml.ts",
+    "src/pages/search.json.ts"
+  ],
+  "themes": {
+    "mallo": "avelrom/fediblog-mallo",
+    "matute": "avelrom/fediblog-matute",
+    "weiss": "avelrom/fediblog-weiss",
+    "gaite": "avelrom/fediblog-gaite"
+  },
+  "public": [
+    "favicon.svg",
+    "fediblog-icon.svg",
+    "fonts/InterVariable-Italic.woff2",
+    "fonts/InterVariable.woff2"
+  ]
+}

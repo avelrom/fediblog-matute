@@ -1,0 +1,56 @@
+<svg viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="squircle">
+      <rect width="32" height="32" rx="6.5" />
+    </clipPath>
+    <linearGradient id="base-flow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff70a0" />
+      <stop offset="22%" stop-color="#ff8c42" />
+      <stop offset="42%" stop-color="#ffb300" />
+      <stop offset="65%" stop-color="#2dd4bf" />
+      <stop offset="82%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#a78bfa" />
+    </linearGradient>
+    <radialGradient id="rad-teal" cx="80%" cy="80%" r="65%">
+      <stop offset="0%" stop-color="#2dd4bf" stop-opacity="1" />
+      <stop offset="60%" stop-color="#2dd4bf" stop-opacity="0.45" />
+      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="rad-coral" cx="20%" cy="80%" r="62%">
+      <stop offset="0%" stop-color="#ff8c42" stop-opacity="0.95" />
+      <stop offset="55%" stop-color="#ff8c42" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#ff8c42" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="rad-amber" cx="50%" cy="85%" r="58%">
+      <stop offset="0%" stop-color="#ffb300" stop-opacity="0.9" />
+      <stop offset="55%" stop-color="#ffb300" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#ffb300" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="rad-blue" cx="85%" cy="20%" r="68%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="1" />
+      <stop offset="58%" stop-color="#38bdf8" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="rad-pink" cx="15%" cy="20%" r="68%">
+      <stop offset="0%" stop-color="#ff70a0" stop-opacity="1" />
+      <stop offset="58%" stop-color="#ff70a0" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#ff70a0" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="rad-violet" cx="52%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.55" />
+      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <g clip-path="url(#squircle)">
+    <rect width="32" height="32" fill="url(#base-flow)" />
+    <rect width="32" height="32" fill="url(#rad-teal)" />
+    <rect width="32" height="32" fill="url(#rad-coral)" />
+    <rect width="32" height="32" fill="url(#rad-amber)" />
+    <rect width="32" height="32" fill="url(#rad-violet)" />
+    <rect width="32" height="32" fill="url(#rad-blue)" />
+    <rect width="32" height="32" fill="url(#rad-pink)" />
+  </g>
+
+  <path d="M 10.283 25.0 L 10.283 7.0 L 22.517 7.0 L 22.517 10.48 L 14.543 10.48 L 14.543 15.044 L 21.732 15.044 L 21.732 18.45 L 14.543 18.45 L 14.543 25.0 Z" fill="#ffffff" />
+</svg>

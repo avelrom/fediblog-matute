@@ -1,0 +1,33 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getTags, getNotasByTagSlug } from '@fediblog/core/lib/notas';
+import EntryList from '../../components/EntryList.astro';
+
+export async function getStaticPaths() {
+  const tags = await getTags();
+  return Promise.all(
+    tags.map(async (tag) => ({
+      params: { tag: tag.slug },
+      props: { tag, notas: await getNotasByTagSlug(tag.slug) },
+    })),
+  );
+}
+
+const { tag, notas } = Astro.props;
+---
+
+<Base title={`#${tag.name}`} description={`Entradas etiquetadas #${tag.name}.`} isEntry>
+  <h1>#{tag.name}</h1>
+  <EntryList notas={notas} />
+</Base>
+
+<style>
+  h1 {
+    font-family: var(--text-font);
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    margin: 0 0 1.25rem;
+  }
+</style>

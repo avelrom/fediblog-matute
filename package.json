@@ -1,0 +1,22 @@
+{
+  "name": "matute-fedi",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev --port 4328",
+    "build": "astro build",
+    "preview": "astro preview --port 4328",
+    "check": "astro check",
+    "fediblog:update": "node scripts/fediblog-update.mjs",
+    "fediblog:update:dry-run": "node scripts/fediblog-update.mjs --dry-run"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.12",
+    "@astrojs/sitemap": "^3.7.4",
+    "@fediblog/core": "^0.1.0",
+    "@fontsource/commit-mono": "^5.3.0",
+    "@lucide/astro": "^1.42.0",
+    "astro": "^7.3.2"
+  }
+}

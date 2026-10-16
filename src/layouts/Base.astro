@@ -1,0 +1,755 @@
+---
+import { isOff } from '@fediblog/core/lib/flags';
+import '@fontsource-variable/inter';
+import '@fontsource-variable/inter/wght-italic.css';
+import '@fontsource/commit-mono/400.css';
+import '@fontsource/commit-mono/600.css';
+import '@fontsource/commit-mono/400-italic.css';
+import { SITE } from '../config';
+import { actor } from '../lib/actor';
+import SearchDialog from '@fediblog/core/components/SearchDialog.astro';
+import ImageLightbox from '../components/ImageLightbox.astro';
+import '@fediblog/core/styles/nav-icons.css';
+import ConfigFields from '@fediblog/core/components/ConfigFields.astro';
+import ThemeFontSizes from '@fediblog/core/components/ThemeFontSizes.astro';
+import { fontSizeAttrs } from '@fediblog/core/lib/font-sizes';
+import ThemeColors from '@fediblog/core/components/ThemeColors.astro';
+import PreviewSidebar from '@fediblog/core/components/PreviewSidebar.astro';
+import Footer from '@fediblog/core/components/Footer.astro';
+import ViewSizeDock from '@fediblog/core/components/ViewSizeDock.astro';
+import { resolveSizes } from '@fediblog/core/lib/view-size';
+import RssCopy from '@fediblog/core/components/RssCopy.astro';
+import { menuItem } from '@fediblog/core/lib/menu';
+import NavIcon from '@fediblog/core/components/Icon.astro';
+import SocialLinks from '@fediblog/core/components/SocialLinks.astro';
+import ThemeToggle from '@fediblog/core/components/ThemeToggle.astro';
+import configSource from '../config.ts?raw';
+
+interface Props {
+  title?: string;
+  description?: string;
+  isEntry?: boolean;
+  /** Página de una entrada: solo ahí el título de la pestaña lleva el de la entrada. */
+  isPost?: boolean;
+  /** Sin el ancho de lectura de 40rem — para páginas con contenido que necesita más sitio (el editor incrustado). */
+  wide?: boolean;
+}
+
+const { title, description = actor.summaryText, isEntry = false, isPost = false, wide = false } = Astro.props;
+// Activado a mano (site.previewSidebar en config.ts) o por el «Live Preview» de Fediblog.
+const showPreviewSidebar =
+  SITE.site.previewSidebar || import.meta.env.PUBLIC_FB_LIVE_PREVIEW === '1';
+
+const pageTitle = isPost && title ? `${title} — ${SITE.site.title}` : SITE.site.title;
+const base = import.meta.env.BASE_URL;
+
+const rawIconsMode = (SITE as any).site.navIconsMode ?? 'both';
+const navIconsMode: 'both' | 'mobile' | 'desktop' | 'none' =
+  rawIconsMode === 'movil' || rawIconsMode === 'mobile'
+    ? 'mobile'
+    : rawIconsMode === 'escritorio' || rawIconsMode === 'desktop'
+      ? 'desktop'
+      : rawIconsMode === 'none' || rawIconsMode === 'ninguno' || !rawIconsMode
+        ? 'none'
+        : 'both';
+const { sizes, defaultSize } = resolveSizes(SITE.site.sizes, SITE.site.defaultSize);
+const hideSocialOnMobile = (SITE as any).site.hideSocialOnMobile ?? true;
+
+const path = Astro.url.pathname.replace(/\/$/, '');
+const isActive = (href: string) => path === href.replace(/\/$/, '');
+const isHome = Astro.url.pathname === base || Astro.url.pathname === `${base}/` || path === '';
+const about = menuItem(SITE.site.menu, 'about', { label: 'about', icon: 'user' });
+const archive = menuItem(SITE.site.menu, 'archive', { label: 'archivo', icon: 'archive' });
+const rss = menuItem(SITE.site.menu, 'rss', { label: 'rss', icon: 'rss' });
+const showArchive = (SITE as any).archive?.show ?? true;
+---
+
+<!doctype html>
+<html {...fontSizeAttrs(SITE.site.fontSize)} lang={SITE.site.locale} data-font={SITE.site.font}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <link rel="alternate" type="application/rss+xml" title={SITE.site.title} href={`${base}rss.xml`} />
+    <link rel="alternate" type="application/feed+json" title={`${SITE.site.title} (JSON Feed)`} href={`${base}feed.json`} />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg?v=2`} />
+    <meta name="generator" content={Astro.generator} />
+    <script is:inline define:vars={{ defaultFont: SITE.site.font, darkMode: SITE.site.darkMode, sizes, defaultSize }}>
+      // La tipografía elegida se aplica antes de pintar, sin parpadeo y persistiendo entre páginas.
+      (function () {
+        var font = defaultFont;
+        try {
+          var ask = new URLSearchParams(location.search).get('font');
+          font = ask || defaultFont;
+        } catch (e) {}
+        if (['sans', 'serif', 'mono'].indexOf(font) < 0) font = defaultFont;
+        document.documentElement.setAttribute('data-font', font);
+
+        var storedSize = localStorage.getItem('matute-size') || defaultSize;
+        if (sizes.indexOf(storedSize) < 0) storedSize = defaultSize;
+        document.documentElement.setAttribute('data-size', storedSize);
+
+        var storedTheme = darkMode === 'light' || darkMode === 'dark' ? darkMode : darkMode === 'toggle' ? localStorage.getItem('fb-theme') : null;
+        if (storedTheme) {
+          document.documentElement.setAttribute('data-theme', storedTheme);
+        }
+      })();
+    </script>
+    <ThemeColors colors={SITE.site.colors} vars={{ accent: ['--accent-1'], title: ['--title-color'] }} titleSelectors={['.brand', '.entry-title', '.entry-header h1', '.archive-title']} titleFallback="var(--fg)" />
+    <ThemeFontSizes selectors={{ brand: ['.brand'], title: ['.entry-title', '.archive-title'], postTitle: ['.entry-header h1'], body: ['.body'] }} />
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Saltar al contenido</a>
+
+    <header class="site-header">
+      <a
+        href={base}
+        class="brand"
+        data-preview-field="site.title"
+        data-preview-apply="text"
+        data-preview-type="text"
+        data-preview-label="Título del blog"
+        data-preview-group="Cabecera"
+        data-preview-sync-title="true"
+      >{SITE.site.title}</a>
+
+      <div class="site-nav-group">
+        <nav class="site-nav" data-icons-mode={navIconsMode} aria-label="Navegación principal">
+          {!isOff(SITE.profile?.show) && (
+          <a
+            href={`${base}about/`}
+            class:list={[about.icon && 'has-icon', isActive(`${base}about`) && 'active']}
+            aria-current={isActive(`${base}about`) ? 'page' : undefined}
+            aria-label="Acerca de"
+            title="Acerca de"
+          >
+            {about.icon && (
+              <span class="nav-icon" aria-hidden="true">
+                <NavIcon name={about.icon} size={15} />
+              </span>
+            )}
+            <span class="nav-label" data-preview-field="site.menu.about.label" data-preview-type="text" data-preview-label="«Acerca de»: texto del enlace" data-preview-group="Menú">{about.label}</span>
+          </a>
+          )}
+          {showArchive && (
+            <a
+              href={`${base}archivo/`}
+              class:list={[archive.icon && 'has-icon', isActive(`${base}archivo`) && 'active']}
+              aria-current={isActive(`${base}archivo`) ? 'page' : undefined}
+              aria-label="Archivo"
+              title="Archivo"
+              data-preview-field="archive.show"
+              data-preview-label="Enlace al archivo"
+              data-preview-group="Archivo"
+            >
+              {archive.icon && (
+                <span class="nav-icon" aria-hidden="true">
+                  <NavIcon name={archive.icon} size={15} />
+                </span>
+              )}
+              <span class="nav-label" data-preview-field="site.menu.archive.label" data-preview-type="text" data-preview-label="«Archivo»: texto del enlace" data-preview-group="Menú">{archive.label}</span>
+            </a>
+          )}
+          <a
+            href={`${base}rss.xml`}
+            data-copy-rss={`${base}rss.xml`}
+            class:list={[rss.icon && 'has-icon', (isActive(`${base}rss`) || isActive(`${base}rss.xml`)) && 'active']}
+            aria-current={(isActive(`${base}rss`) || isActive(`${base}rss.xml`)) ? 'page' : undefined}
+            aria-label="Canal RSS"
+            title="Canal RSS"
+          >
+            {rss.icon && (
+              <span class="nav-icon" aria-hidden="true">
+                <NavIcon name={rss.icon} size={15} />
+              </span>
+            )}
+            <span class="nav-label" data-preview-field="site.menu.rss.label" data-preview-type="text" data-preview-label="«RSS»: texto del enlace" data-preview-group="Menú">{rss.label}</span>
+          </a>
+          <button
+            type="button"
+            class="nav-icon-btn"
+            data-search-open
+            hidden
+            aria-label="Buscar"
+            title="Buscar (/)"
+          >
+            <NavIcon name="search" size={15} />
+          </button>
+          {SITE.site.darkMode === 'toggle' && <ThemeToggle />}
+        </nav>
+
+        <div class:list={['site-tools', hideSocialOnMobile && 'hide-social-mobile']}>
+          <SocialLinks social={SITE.social} editableInPanel={isHome} />
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class:list={[wide && 'wide']} tabindex="-1">
+      {!isEntry && <h1 class="sr-only">{SITE.site.title}</h1>}
+      <slot />
+    </main>
+
+    <Footer authorName={actor.name} siteTitle={SITE.site.title} base={base} />
+    <SearchDialog />
+    <RssCopy />
+    <ImageLightbox />
+
+    <span
+      data-preview-field="site.font"
+      data-preview-type="select"
+      data-preview-apply="root-attr:data-font"
+      data-preview-label="Tipografía"
+      data-preview-group="Apariencia"
+      data-preview-options='[["sans","Sans"],["serif","Serif"],["mono","Mono"]]'
+      hidden
+    ></span>
+
+    <ViewSizeDock sizes={sizes} activeSize={defaultSize} themeId="matute" />
+
+    {showPreviewSidebar && !wide && <><PreviewSidebar siteConfig={SITE} configSource={configSource} themeId="matute" /><ConfigFields siteConfig={SITE} colorVars={{ accent: ['--accent-1'], title: ['--title-color'] }} titleSample=".brand" /></>}
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --fg: #0f0f11;
+    --muted: #71717a;
+    --bg: #ffffff;
+    --accent-1: #0f0f11;
+    --accent-2: #82828e;
+    --accent-3: #52525b;
+    --line: #f0f0f2;
+    --line-strong: #e2e2e5;
+    --surface: #f8f8f9;
+    --surface-hover: #f1f1f3;
+    --faint: #e4e4e7;
+    --serif: -apple-system-ui-serif, 'New York', Charter, 'Bitstream Charter', 'Iowan Old Style', Georgia, serif;
+    --sans: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --text-font: var(--sans);
+    --mono: 'Commit Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+    /* Tokens de tamaño y tipografía (por defecto md) */
+    --max-w: 39rem;
+    --font-size-base: 0.86rem;
+    --line-height-base: 1.75;
+    --font-size-brand: 1.5rem;
+    --font-size-entry-title: 0.88rem;
+    --font-size-entry-h1: 1.35rem;
+    --font-size-prose: 0.88rem;
+    --font-size-meta: 0.74rem;
+  }
+
+  :root[data-size="sm"] {
+    --max-w: 31rem;
+    --font-size-base: 0.82rem;
+    --line-height-base: 1.7;
+    --font-size-brand: 1.35rem;
+    --font-size-entry-title: 0.84rem;
+    --font-size-entry-h1: 1.25rem;
+    --font-size-prose: 0.84rem;
+    --font-size-meta: 0.72rem;
+  }
+
+  :root[data-size="md"] {
+    --max-w: 39rem;
+    --font-size-base: 0.86rem;
+    --line-height-base: 1.75;
+    --font-size-brand: 1.5rem;
+    --font-size-entry-title: 0.88rem;
+    --font-size-entry-h1: 1.35rem;
+    --font-size-prose: 0.88rem;
+    --font-size-meta: 0.74rem;
+  }
+
+  :root[data-size="lg"] {
+    --max-w: 58rem;
+    --font-size-base: 1.02rem;
+    --line-height-base: 1.8;
+    --font-size-brand: 1.85rem;
+    --font-size-entry-title: 1.06rem;
+    --font-size-entry-h1: 1.75rem;
+    --font-size-prose: 1.04rem;
+    --font-size-meta: 0.82rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fg: #f4f4f5;
+      --muted: #a1a1aa;
+      --bg: #09090b;
+      --accent-1: #f4f4f5;
+      --accent-2: #8e8e99;
+      --accent-3: #c4c4cc;
+      --line: #18181b;
+      --line-strong: #27272a;
+      --surface: #121215;
+      --surface-hover: #18181c;
+      --faint: #27272a;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --fg: #f4f4f5;
+    --muted: #a1a1aa;
+    --bg: #09090b;
+    --accent-1: #f4f4f5;
+    --accent-2: #8e8e99;
+    --accent-3: #c4c4cc;
+    --line: #18181b;
+    --line-strong: #27272a;
+    --surface: #121215;
+    --surface-hover: #18181c;
+    --faint: #27272a;
+  }
+
+  /* Comentarios: paleta y encaje */
+  .comments {
+    --cm-fg: var(--fg);
+    --cm-muted: var(--muted);
+    --cm-line: var(--line);
+    --cm-accent: var(--accent-1);
+    --cm-radius: 4px;
+    font-size: 0.82rem;
+    margin-top: 3.25rem;
+    padding-top: 0;
+    border-top: none;
+  }
+  main .comments--empty {
+    margin-top: 2.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+  }
+  main .comments-title {
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+    margin: 0 0 1.35rem;
+  }
+  main .comments-title a {
+    color: var(--muted);
+    text-decoration: underline;
+    text-decoration-color: var(--line);
+    text-underline-offset: 0.25em;
+    transition: color 0.12s ease, text-decoration-color 0.12s ease;
+  }
+  main .comments-title a:hover {
+    color: var(--fg);
+    text-decoration-color: var(--fg);
+  }
+  main .comments-link {
+    font-family: var(--text-font);
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--muted);
+    text-align: left;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: color 0.12s ease;
+  }
+  main .comments-link:hover {
+    color: var(--fg);
+  }
+  main .comments-link::after {
+    content: '→';
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    transition: transform 0.12s ease;
+  }
+  main .comments-link:hover::after {
+    transform: translateX(2px);
+  }
+
+  * { box-sizing: border-box; }
+
+  html {
+    color-scheme: light dark;
+    overflow-x: hidden;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--text-font);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+    transition: font-size 0.2s ease, line-height 0.2s ease;
+  }
+
+  img, svg, video, iframe {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .skip-link {
+    position: fixed;
+    top: -3rem;
+    left: 1rem;
+    z-index: 100;
+    background: var(--fg);
+    color: var(--bg);
+    padding: 0.4rem 0.75rem;
+    border-radius: 3px;
+    font-size: 0.78rem;
+    text-decoration: none;
+    transition: top 0.15s ease;
+  }
+  .skip-link:focus { top: 1rem; }
+
+  a {
+    color: inherit;
+    text-decoration-color: var(--line-strong);
+    text-underline-offset: 0.22em;
+    transition: text-decoration-color 0.12s ease, color 0.12s ease;
+  }
+  a:hover {
+    text-decoration-color: var(--fg);
+  }
+
+  .site-header,
+  main:not(.wide),
+  .footer-inner {
+    width: 100%;
+    max-width: var(--max-w);
+    margin: 0 auto;
+    transition: max-width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .site-header, main {
+    padding: 0 1.25rem;
+  }
+
+  main:focus {
+    outline: none;
+  }
+
+  .site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 2.35rem;
+    padding-bottom: 2.6rem;
+    flex-wrap: wrap;
+  }
+
+  .brand {
+    font-family: var(--text-font);
+    font-size: var(--font-size-brand);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    text-decoration: none;
+    color: var(--fg);
+    transition: opacity 0.15s ease, font-size 0.2s ease;
+  }
+  .brand:hover {
+    opacity: 0.7;
+  }
+
+  .site-nav-group {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .site-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .site-nav a {
+    font-family: var(--text-font);
+    font-size: 0.84rem;
+    color: var(--muted);
+    text-decoration: none;
+    position: relative;
+    padding: 0.2rem 0;
+    white-space: nowrap;
+    transition: color 0.15s ease, background-color 0.15s ease;
+  }
+  .site-nav a:hover {
+    color: var(--fg);
+    text-decoration: underline;
+  }
+  .site-nav a.active {
+    color: var(--fg);
+    font-weight: 600;
+  }
+
+  /* Enlaces con icono sustituyendo al texto en escritorio */
+  @media (min-width: 44.01rem) {
+  }
+
+  /* Herramientas (redes sociales, RSS, buscador) */
+  .site-tools {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding-left: 0.75rem;
+    border-left: 1px solid var(--line);
+  }
+
+  .site-tools-sep {
+    display: inline-block;
+    width: 1px;
+    height: 14px;
+    background: var(--line);
+    margin: 0 0.35rem;
+    opacity: 0.8;
+  }
+
+  .social {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .social li {
+    display: inline-flex;
+  }
+  .social a,
+  .nav-icon-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    border-radius: 4px;
+    width: 1.65rem;
+    height: 1.65rem;
+    padding: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: color 0.15s ease, background-color 0.15s ease, transform 0.12s ease;
+  }
+  .social a:hover,
+  .nav-icon-btn:hover {
+    color: var(--fg);
+    background-color: var(--surface-hover);
+    text-decoration: none;
+  }
+  .social a:active,
+  .nav-icon-btn:active {
+    transform: scale(0.92);
+  }
+  .social a svg,
+  .nav-icon-btn svg {
+    display: block;
+    width: 15px;
+    height: 15px;
+    transition: transform 0.2s ease;
+  }
+  .nav-icon-btn:hover svg {
+    transform: rotate(15deg);
+  }
+
+  @media (max-width: 44rem) {
+  }
+
+  @media (max-width: 38rem) {
+    .site-tools.hide-social-mobile {
+      display: none;
+    }
+  }
+
+  main {
+    flex: 1 0 auto;
+    width: 100%;
+    padding-bottom: 2.5rem;
+  }
+  main.wide {
+    max-width: 64rem;
+  }
+
+  .site-footer {
+    width: 100%;
+    margin-top: auto;
+    text-align: center;
+    border: none;
+  }
+
+  .footer-inner {
+    width: 100%;
+    max-width: 37rem;
+    margin: 0 auto;
+    padding: 1.25rem 1.25rem 0.85rem;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--text-font);
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .footer-meta {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.55rem;
+    line-height: 1.6;
+  }
+
+  .footer-sep {
+    opacity: 0.4;
+    user-select: none;
+  }
+
+  .footer-credit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .footer-inner a {
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .footer-inner a:hover {
+    color: var(--fg);
+    text-decoration: underline;
+    text-underline-offset: 0.22em;
+  }
+
+  .fediblog-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .fediblog-link:hover {
+    color: var(--fg);
+  }
+
+  .fediblog-favicon {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    display: inline-block;
+    flex-shrink: 0;
+    vertical-align: -1px;
+  }
+
+  :focus-visible { outline: 2px solid var(--accent-1); outline-offset: 2px; }
+
+  /* Ajustes por variante tipográfica */
+  :root[data-font='sans'] {
+    --text-font: var(--sans);
+  }
+
+  :root[data-font='serif'] {
+    --text-font: var(--serif);
+  }
+
+  :root[data-font='mono'] {
+    --text-font: var(--mono);
+    --font-size-base: 0.82rem;
+    --font-size-brand: 1.35rem;
+    --font-size-entry-title: 0.84rem;
+    --font-size-entry-h1: 1.3rem;
+    --font-size-prose: 0.82rem;
+  }
+  :root[data-font='mono'][data-size="lg"] {
+    --font-size-base: 0.98rem;
+    --font-size-brand: 1.65rem;
+    --font-size-entry-title: 1rem;
+    --font-size-entry-h1: 1.6rem;
+    --font-size-prose: 0.98rem;
+  }
+  :root[data-font='mono'] .year-label,
+  :root[data-font='mono'] .entry-page .meta,
+  :root[data-font='mono'] .entries time {
+    font-style: normal;
+  }
+  :root[data-font='mono'] .entry-page .body blockquote {
+    font-style: normal;
+  }
+
+  @media (max-width: 38rem) {
+    .site-header, main {
+      padding: 0 1rem;
+    }
+    .site-header {
+      padding-top: 1.75rem;
+      padding-bottom: 2rem;
+      gap: 0.75rem;
+    }
+    .footer-inner {
+      padding: 1.75rem 1rem 2.25rem;
+    }
+  }
+
+  /* Accesibilidad: áreas táctiles cómodas en pantallas táctiles (WCAG 2.5.5 / 2.5.8) */
+  @media (pointer: coarse) {
+    .site-nav a.has-icon,
+    .nav-icon-btn,
+    .social a,
+    .pagination a {
+      position: relative;
+    }
+    .site-nav a.has-icon::after,
+    .nav-icon-btn::after,
+    .social a::after,
+    .pagination a::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      min-width: 44px;
+      min-height: 44px;
+      width: 100%;
+      height: 100%;
+    }
+    .skip-link {
+      padding: 0.6rem 1rem;
+      font-size: 0.85rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+</style>

@@ -1,0 +1,51 @@
+name: Cambiar de tema Fediblog
+
+# Cambia tu blog a otro tema de Fediblog sin terminal ni conocimientos
+# técnicos, conservando tu configuración (cuenta, título, redes, comentarios…).
+# Abre un Pull Request con el cambio para que lo revises: si no te convence, lo
+# cierras sin fusionar y tu blog sigue exactamente como estaba.
+#
+# Solo se lanza a mano, nunca solo: pestaña "Actions" de este repo →
+# "Cambiar de tema Fediblog" → "Run workflow" → elige el tema nuevo.
+# (Ver doc "Cambiar de tema".)
+
+on:
+  workflow_dispatch:
+    inputs:
+      tema:
+        description: 'Tema al que quieres cambiar'
+        required: true
+        type: choice
+        options:
+          - mallo
+          - matute
+          - weiss
+          - gaite
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  switch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Cambiar de tema
+        run: node scripts/fediblog-switch.mjs "${{ inputs.tema }}"
+        env:
+          REPORT_PATH: ${{ runner.temp }}/informe-cambio-de-tema.md
+
+      - name: Abrir Pull Request con el cambio
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: 'Cambiar al tema ${{ inputs.tema }}'
+          title: 'Cambiar al tema ${{ inputs.tema }}'
+          body-path: ${{ runner.temp }}/informe-cambio-de-tema.md
+          branch: fediblog-cambio-de-tema
+          delete-branch: true

@@ -1,0 +1,33 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Base from '../layouts/Base.astro';
+import Pagination from '../components/Pagination.astro';
+import EntryList from '../components/EntryList.astro';
+import { getNotas } from '@fediblog/core/lib/notas';
+import { SITE } from '../config';
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const notas = await getNotas();
+  return paginate(notas, { pageSize: SITE.home.postsPerPage });
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+const notas = page.data;
+---
+
+<Base>
+  <EntryList notas={notas} />
+  {notas.length === 0 && <p class="empty">Todavía no hay entradas.</p>}
+  <Pagination
+    prev={page.url.prev || undefined}
+    next={page.url.next || undefined}
+    current={page.currentPage}
+    total={page.lastPage}
+  />
+</Base>
+
+<style>
+  .empty {
+    color: var(--muted);
+  }
+</style>

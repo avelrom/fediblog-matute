@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+.output/
+
+# astro
+.astro/
+
+# contenido descargado del fediverso en la compilación
+# (el snapshot es reproducible; para un archivo permanente, quita estas dos
+#  líneas y commitea la carpeta .fediblog-cache/ y public/media/)
+.fediblog-cache/
+public/media/
+
+# env
+.env
+.env.production
+.env.*.local
+
+# logs
+npm-debug.log*
+*.log
+
+# os / editor
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/

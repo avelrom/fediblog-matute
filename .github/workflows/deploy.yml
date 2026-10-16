@@ -1,0 +1,45 @@
+name: Publicar en GitHub Pages
+
+# Compila el sitio y lo publica en GitHub Pages.
+# Configuración única: Settings → Pages → "Build and deployment" → Source:
+# "GitHub Actions".
+#
+# El contenido se descarga del fediverso en cada compilación, así que además
+# de compilar al hacer push, se recompila sola una vez al día para recoger
+# los mensajes nuevos (esto SÍ tiene sentido que sea automático — a
+# diferencia de las actualizaciones del propio tema, que solo se lanzan a
+# mano desde fediblog-update.yml). Ajusta la hora o el bloque `schedule` a
+# tu gusto; también puedes lanzarlo a mano con el botón "Run workflow".
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * *' # todos los días a las 6:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: withastro/action@v3
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

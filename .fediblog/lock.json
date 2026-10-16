@@ -1,0 +1,26 @@
+{
+  "version": "main",
+  "files": {
+    "astro.config.mjs": "913a4e7c010e6a4fd20b8455fe40aacb531e01743c3cb139819d9c4d8cf200a5",
+    "scripts/fediblog-switch.mjs": "e9e246c94d218cdf680af1ce8247275e801666a86d62b58865e4156c45a7065c",
+    "scripts/fediblog-update.mjs": "8c6e63992041cd8a9e2a6fbade308ce0ddc61def7bf63003f86f2573ad9dd339",
+    "src/components/EntryList.astro": "820df7b783a33629db944e6d2e4c93abab733a66165caf53548f99da0fb0bc23",
+    "src/components/ImageLightbox.astro": "75d576aba083c051598f343622dfedd1e9cd2f8eb3c6da7956f5a321e17bc02b",
+    "src/components/Pagination.astro": "73c7a0b3115a34f71a19d2c6f101ef02a008a14a25af499b465710bb28e211ae",
+    "src/content.config.ts": "c65edc56cd2f00c1678ea77b40d4e4d0a955f31aadd01606654e8aa31ee2f4ec",
+    "src/layouts/Base.astro": "2a64e636eccea9df2fa47f3ac296be0747db4320c7d008d303b8aa6c183a1314",
+    "src/lib/actor.ts": "93454597ac49eb635c51e71bc3ab738080a6a64e288ccc7622ebc8fa4db80b8a",
+    "src/lib/feed.ts": "aae8002e455c2752f3834d5f488e91fedf40c2522ddb98900a71a34dac0665b0",
+    "src/pages/404.astro": "17cd1b95a809bf7d7fb6279dd65472a7b61de77a64d8d0628d79cec740e913a0",
+    "src/pages/[...page].astro": "dec11e7b0dda190b492bcc39e9193b748ad08562a5a0c3e7f5736ed0d1c8fd1f",
+    "src/pages/[slug].astro": "19fa9ad6188662019f545a2960355cc647addbf6b117d934dad867ec6190874c",
+    "src/pages/about.astro": "e15466ec767a9860154bacc2535e03df36f55d4b8d260abebe41c7b7a9fd4a9a",
+    "src/pages/archivo.astro": "a041e6479ab2d925bf6035f1f97b15b30619903234738c6f17723d2b203b8b77",
+    "src/pages/editor.astro": "256efce93042e7863fc1dd36ef73550a16f362350aa37df6f35056157fe06d38",
+    "src/pages/etiquetas/[tag].astro": "dcda07d2276c856f4f0167bc0c31a1022a08b076d275e25e89acc46cad50ff8f",
+    "src/pages/feed.json.ts": "9cb71d193e4f39b8e2d798209bd9f0d0f9d7089dbaa8190c4a6ebe0fac4fd59e",
+    "src/pages/rss-styles.xsl.ts": "6ab784a89eb704696f86b1acfd7ebba4caad0a29c7ad25da0c15d59c4be6bc9e",
+    "src/pages/rss.xml.ts": "2d3218b5032c45b3e34824f7518c9c94cce3d12de2dbad4a3925d4e4a347553e",
+    "src/pages/search.json.ts": "33eaa43eec09b8cf5e1cbbc63a20189904acf405b69703dd1498d48b1f36c8af"
+  }
+}

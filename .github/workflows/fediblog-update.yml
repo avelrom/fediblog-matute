@@ -1,0 +1,48 @@
+name: Actualizar tema Fediblog
+
+# Trae mejoras del tema (ver npm run fediblog:update / doc/actualizar) sin
+# necesidad de terminal: abre un Pull Request con los cambios para que los
+# revises y los fusiones con un clic desde el propio GitHub. Si despliegas
+# con Netlify o GitHub Pages, en cuanto fusiones el PR se redespliega solo,
+# igual que con cualquier otro commit.
+#
+# Solo se lanza a mano, nunca solo: pestaña "Actions" de este repo →
+# "Actualizar tema Fediblog" → "Run workflow".
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Ejecutar el actualizador
+        run: node scripts/fediblog-update.mjs
+
+      - name: Abrir Pull Request si hay cambios
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: 'Actualizar tema Fediblog'
+          title: 'Actualización del tema Fediblog disponible'
+          body: |
+            Cambios generados automáticamente por `npm run fediblog:update`
+            (ver `fediblog.manifest.json` y la doc "Actualizar el tema").
+
+            - Revisa el diff antes de fusionar.
+            - Si aparece algún archivo `*.upstream`, hubo un conflicto (tocaste
+              ese archivo y arriba también cambió) — el original se ha dejado
+              intacto; compáralo a mano, fusiona lo que quieras conservar y
+              borra el `.upstream` antes de fusionar este PR.
+            - `src/config.ts` nunca se toca.
+          branch: fediblog-update
+          delete-branch: true

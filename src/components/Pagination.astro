@@ -1,0 +1,25 @@
+---
+import Pagination from '@fediblog/core/components/Pagination.astro';
+import type { ComponentProps } from 'astro/types';
+
+type Props = ComponentProps<typeof Pagination>;
+---
+<Pagination {...Astro.props} />
+
+<style is:global>
+  .pagination {
+    margin-top: 2.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .pagination-link { color: var(--fg); }
+  .pagination-link:hover .pagination-label { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.25em; }
+  .pagination-arrow { display: none; }
+  .pagination-prev .pagination-label::before { content: '← '; }
+  .pagination-next .pagination-label::after { content: ' →'; }
+  @media (pointer: coarse) {
+    .pagination-link { padding: 0.4rem 0.2rem; min-height: 2.5rem; }
+  }
+</style>

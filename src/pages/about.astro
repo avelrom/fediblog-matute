@@ -1,0 +1,13 @@
+---
+import { isOff } from '@fediblog/core/lib/flags';
+import Base from '../layouts/Base.astro';
+import ProfileCard from '@fediblog/core/components/ProfileCard.astro';
+import { actor, formatCount } from '../lib/actor';
+import { SITE } from '../config';
+
+if (isOff(SITE.profile?.show)) return Astro.redirect(import.meta.env.BASE_URL);
+---
+
+<Base title="About" description={`Sobre ${actor.name}.`} isEntry>
+  <ProfileCard actor={actor} formatCount={formatCount} profile={SITE.profile} social={SITE.social} />
+</Base>

@@ -1,0 +1,110 @@
+# Trae mejoras del tema (ver npm run fediblog:update / doc/actualizar) sin
+# necesidad de terminal: abre un Merge Request con los cambios para que los
+# revises y los fusiones con un clic desde el propio GitLab.
+#
+# Equivalente en GitLab del flujo de .github/workflows/fediblog-update.yml
+# — si despliegas con GitHub en vez de GitLab, usa ese archivo en su lugar y
+# borra este.
+#
+# Configuración única, antes del primer uso:
+#   1. Perfil → Preferencias de acceso → Access Tokens (o, mejor, un token
+#      de PROYECTO: Configuración → Access Tokens) con los scopes
+#      `api` y `write_repository`.
+#   2. Configuración → CI/CD → Variables → añade `FEDIBLOG_UPDATE_TOKEN`
+#      con ese token (marca "Mask variable").
+# GitLab no trae, a diferencia de GitHub, un token automático con permiso
+# para abrir Merge Requests desde un job — por eso hace falta este paso.
+
+fediblog-update:
+  stage: .pre
+  image: node:20
+  rules:
+    # Solo se lanza a mano, nunca solo: botón "Run pipeline" en CI/CD → Pipelines.
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  script:
+    - node scripts/fediblog-update.mjs
+    - |
+      if [ -z "$(git status --porcelain)" ]; then
+        echo "Sin cambios que actualizar."
+        exit 0
+      fi
+      if [ -z "$FEDIBLOG_UPDATE_TOKEN" ]; then
+        echo "Falta la variable CI/CD FEDIBLOG_UPDATE_TOKEN — ver comentario al principio de este archivo." >&2
+        exit 1
+      fi
+      git config user.email "fediblog-update@${CI_SERVER_HOST}"
+      git config user.name "Fediblog (actualización automática)"
+      BRANCH="fediblog-update-${CI_PIPELINE_ID}"
+      git checkout -b "$BRANCH"
+      git add -A
+      git commit -m "Actualizar tema Fediblog"
+      git push "https://oauth2:${FEDIBLOG_UPDATE_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git" "$BRANCH"
+      curl --silent --show-error --fail \
+        --request POST \
+        --header "PRIVATE-TOKEN: ${FEDIBLOG_UPDATE_TOKEN}" \
+        --data-urlencode "source_branch=${BRANCH}" \
+        --data-urlencode "target_branch=${CI_DEFAULT_BRANCH}" \
+        --data-urlencode "title=Actualización del tema Fediblog disponible" \
+        --data-urlencode "remove_source_branch=true" \
+        --data-urlencode "description=Cambios generados automáticamente por npm run fediblog:update. Revisa el diff antes de fusionar; los archivos *.upstream (si los hay) son conflictos que tocan resolverse a mano. src/config.ts nunca se toca." \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests"
+
+# ─────────────────────────────────────────────────────────────────────────
+# Cambiar de tema (equivalente en GitLab del flujo fediblog-switch.yml de
+# GitHub): conserva tu configuración y abre un Merge Request con el cambio.
+# Se lanza a mano: CI/CD → Pipelines → Run pipeline, y en «Variables» añade
+# THEME con el tema nuevo (mallo, matute, weiss o gaite). Necesita la misma
+# variable FEDIBLOG_UPDATE_TOKEN que la actualización del tema.
+# ─────────────────────────────────────────────────────────────────────────
+fediblog-switch:
+  stage: .pre
+  image: node:20
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $THEME'
+  script:
+    - REPORT_PATH=/tmp/informe.md node scripts/fediblog-switch.mjs "$THEME"
+    - |
+      if [ -z "$FEDIBLOG_UPDATE_TOKEN" ]; then
+        echo "Falta la variable CI/CD FEDIBLOG_UPDATE_TOKEN (ver el principio de este archivo)." >&2
+        exit 1
+      fi
+      git config user.email "fediblog-update@${CI_SERVER_HOST}"
+      git config user.name "Fediblog (cambio de tema)"
+      BRANCH="fediblog-cambio-de-tema-${CI_PIPELINE_ID}"
+      git checkout -b "$BRANCH"
+      git add -A
+      git commit -m "Cambiar al tema ${THEME}"
+      git push "https://oauth2:${FEDIBLOG_UPDATE_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git" "$BRANCH"
+      curl --silent --show-error --fail \
+        --request POST \
+        --header "PRIVATE-TOKEN: ${FEDIBLOG_UPDATE_TOKEN}" \
+        --data-urlencode "source_branch=${BRANCH}" \
+        --data-urlencode "target_branch=${CI_DEFAULT_BRANCH}" \
+        --data-urlencode "title=Cambiar al tema ${THEME}" \
+        --data-urlencode "remove_source_branch=true" \
+        --data-urlencode "description@/tmp/informe.md" \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests"
+
+# ─────────────────────────────────────────────────────────────────────────
+# Publica el sitio en GitLab Pages (equivalente al deploy.yml de GitHub
+# Actions). El contenido se descarga del fediverso en cada compilación, así
+# que conviene recompilar también sola de vez en cuando para recoger
+# mensajes nuevos — GitLab no lee un `cron` del propio archivo: configúralo
+# en CI/CD → Schedules → "New schedule" (ver doc/personalizar «Publicar y
+# automatizar»).
+# ─────────────────────────────────────────────────────────────────────────
+pages:
+  stage: deploy
+  image: node:20
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  script:
+    - npm ci
+    - npm run build
+    - rm -rf public
+    - mv dist public
+  artifacts:
+    paths:
+      - public
