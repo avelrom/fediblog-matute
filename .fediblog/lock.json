@@ -8,7 +8,7 @@
     "src/components/ImageLightbox.astro": "75d576aba083c051598f343622dfedd1e9cd2f8eb3c6da7956f5a321e17bc02b",
     "src/components/Pagination.astro": "73c7a0b3115a34f71a19d2c6f101ef02a008a14a25af499b465710bb28e211ae",
     "src/content.config.ts": "c65edc56cd2f00c1678ea77b40d4e4d0a955f31aadd01606654e8aa31ee2f4ec",
-    "src/layouts/Base.astro": "2a64e636eccea9df2fa47f3ac296be0747db4320c7d008d303b8aa6c183a1314",
+    "src/layouts/Base.astro": "cc61e366c657ae32479377cba4f9940af7d2a326c406fc2d66d1175ebc6b70ae",
     "src/lib/actor.ts": "93454597ac49eb635c51e71bc3ab738080a6a64e288ccc7622ebc8fa4db80b8a",
     "src/lib/feed.ts": "aae8002e455c2752f3834d5f488e91fedf40c2522ddb98900a71a34dac0665b0",
     "src/pages/404.astro": "17cd1b95a809bf7d7fb6279dd65472a7b61de77a64d8d0628d79cec740e913a0",
